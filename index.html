@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📦 Gestor de Inventario | Catálogo</title>
+  <meta name="description" content="Sistema de gestión de inventario con catálogo visual">
+  <style>
+    :root {
+      --primary: #e7b481;
+      --primary-dark: #16a34a;
+      --bg: #5c6a8c;
+      --bg-secondary: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --card-bg: #1e293b;
+      --accent: #f59e0b;
+      --border: #334155;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+      --whatsapp: #25D366;
+      --hero-overlay: rgba(22, 101, 52, 0.7);
+      --danger: #ef4444;
+      --success: #10b981;
+      --table-header-bg: #0f172a;
+      --table-row-hover: #334155;
+      --table-border: #475569;
+    }
+
+    [data-theme="light"] {
+      --primary: #000000;
+      --primary-dark: #15803d;
+      --bg: hsl(23, 48%, 70%);
+      --bg-secondary: #ffffff;
+      --text: #0f172a;
+      --text-secondary: #000000;
+      --card-bg: #e6a374;
+      --accent: #f59e0b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --whatsapp: #fc8404;
+      --hero-overlay: rgba(22, 101, 52, 0.85);
+      --danger: #dc2626;
+      --success: #059669;
+      --table-header-bg: #f1f5f9;
+      --table-row-hover: #e2e8f0;
+      --table-border: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background-color 0.3s ease;
+    }
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .logo { 
+      font-size: 1.4rem; 
+      font-weight: bold; 
+      color: var(--primary); 
+      text-decoration: none; 
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: transform 0.2s;
+    }
+    .btn-primary:hover { transform: scale(1.05); }
+
+    .theme-toggle {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      color: var(--text);
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+    .theme-toggle:hover {
+      transform: rotate(15deg) scale(1.1);
+      border-color: var(--primary);
+    }
+    .theme-toggle .sun-icon { display: none; }
+    .theme-toggle .moon-icon { display: block; }
+    
+    [data-theme="light"] .theme-toggle .sun-icon { display: block; }
+    [data-theme="light"] .theme-toggle .moon-icon { display: none; }
+
+    .hero {
+      position: relative;
+      color: rgb(255, 255, 255);
+      text-align: center;
+      padding: 4rem 1rem;
+      overflow: hidden;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .hero-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    
+    .hero > h1,
+    .hero > p {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    .hero p { font-size: 1.1rem; opacity: 0.98; margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    
+    .section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+      min-height: calc(100vh - 300px);
+    }
+    .section.active {
+      display: block;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+    .category-card {
+      background: var(--card-bg);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid var(--border);
+      position: relative;
+    }
+    .category-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.4);
+      border-color: var(--primary);
+    }
+    .category-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .category-card:hover img {
+      transform: scale(1.1);
+    }
+    .category-card-content {
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .category-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .category-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+    .category-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .category-count {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 1rem;
+      font-size: 0.85rem;
+      margin-top: 0.8rem;
+      font-weight: 600;
+    }
+
+    .category-header {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .back-btn {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 0.7rem 1.5rem;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+    .back-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: translateX(-3px);
+    }
+    .category-title {
+      font-size: 1.8rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .container { 
+      max-width: 1400px; 
+      margin: 0 auto; 
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    .catalog-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .catalog-header h2 { font-size: 1.8rem; color: var(--primary); }
+    .catalog-header p { color: var(--text-secondary); }
+
+    /* Excel-style Table */
+    .spreadsheet-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .spreadsheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 800px;
+    }
+
+    .spreadsheet-table th {
+      background: var(--table-header-bg);
+      color: var(--text);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--table-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .spreadsheet-table td {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--table-border);
+      vertical-align: middle;
+    }
+
+    .spreadsheet-table tbody tr {
+      transition: background-color 0.2s;
+    }
+
+    .spreadsheet-table tbody tr:hover {
+      background: var(--table-row-hover);
+    }
+
+    .spreadsheet-table tbody tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
+
+    [data-theme="light"] .spreadsheet-table tbody tr:nth-child(even) {
+      background: rgba(0,0,0,0.02);
+    }
+
+    .cell-editable {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem;
+      border-radius: 0.25rem;
+      width: 100%;
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    .cell-editable:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+
+    .product-img-small {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 0.4rem;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .product-img-small:hover {
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+
+    .badge-small {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-fresco {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .badge-masiva {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .badge-agotado {
+      background: var(--danger);
+      color: white;
+    }
+
+    .stock-ok {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .stock-low {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .btn-action-small {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin: 0.2rem;
+      transition: all 0.2s;
+    }
+
+    .btn-save-small {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-save-small:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-delete-small {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-delete-small:hover {
+      opacity: 0.9;
+    }
+
+    .btn-add-column {
+      background: var(--bg);
+      border: 2px dashed var(--border);
+      color: var(--text-secondary);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      margin-right: 0.5rem;
+    }
+
+    .btn-add-column:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-add-row {
+      background: var(--success);
+      border: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .btn-add-row:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .table-toolbar {
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal.open { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      border: 1px solid var(--border);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--primary);
+      color: white;
+      transform: rotate(90deg);
+    }
+    .modal-body { padding: 2rem; }
+    .modal-body h3 { 
+      font-size: 1.5rem; 
+      margin-bottom: 1.5rem; 
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .form-group label.required::after {
+      content: " *";
+      color: var(--danger);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 1rem;
+      transition: transform 0.2s;
+    }
+    .btn-submit:hover { transform: scale(1.02); }
+
+    footer {
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 2rem 1rem;
+      margin-top: 3rem;
+      border-top: 1px solid var(--border);
+      transition: background-color 0.3s ease;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.8rem; }
+      .hero { padding: 2.5rem 1rem; }
+      .categories-grid { grid-template-columns: 1fr; padding: 2rem 1rem; }
+      .category-card img { height: 200px; }
+      .category-header { flex-direction: column; text-align: center; }
+      .nav-buttons { width: 100%; justify-content: space-between; }
+      .spreadsheet-table {
+        font-size: 0.8rem;
+      }
+      .spreadsheet-table th,
+      .spreadsheet-table td {
+        padding: 0.5rem;
+      }
+      .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toolbar-group {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo" onclick="showSection('home')">📦 Gestor de Inventario</a>
+      <div class="nav-buttons">
+        <button class="btn-primary" onclick="openAddProductModal()">
+          ➕ Nuevo Producto
+        </button>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+          <span class="sun-icon">☀️</span>
+          <span class="moon-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <video class="hero-video" autoplay muted loop playsinline>
+      <source src="ab23518b-3b1b-40d6-bc98-2cbf8cf07388.mp4" type="video/mp4">
+      <source src="tu-video.webm" type="video/webm">
+      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+      Tu navegador no soporta videos HTML5.
+    </video>
+    
+    <h1>📊 Sistema de Gestión de Inventario</h1>
+    <p>Administra tu catálogo, stock y pedidos desde un solo lugar</p>
+  </section>
+
+  <div id="homeSection" class="section active">
+    <div class="categories-grid">
+      <div class="category-card" onclick="showSection('cacao-criollo')">
+        <img src="https://placehold.co/600x400/78350f/ffffff?text=🍫+Cacao+Criollo" alt="Cacao Criollo">
+        <div class="category-card-content">
+          <div class="category-icon">🍫</div>
+          <h3>Cacao Criollo</h3>
+          <p>El cacao más exquisito y aromático. Producido en las montañas de América.</p>
+          <span class="category-count" id="count-cacao-criollo">0 productos</span>
+        </div>
+      </div>
+
+      <div class="category-card" onclick="showSection('cacao-forastero')">
+        <img src="https://placehold.co/600x400/92400e/ffffff?text=🍫+Cacao+Forastero" alt="Cacao Forastero">
+        <div class="category-card-content">
+          <div class="category-icon">🍫</div>
+          <h3>Cacao Forastero</h3>
+          <p>El cacao más abundante y versátil. Ideal para productos derivados.</p>
+          <span class="category-count" id="count-cacao-forastero">0 productos</span>
+        </div>
+      </div>
+
+      <div class="category-card" onclick="showSection('cacao-trinitario')">
+        <img src="https://placehold.co/600x400/451a03/ffffff?text=🍫+Cacao+Trinitario" alt="Cacao Trinitario">
+        <div class="category-card-content">
+          <div class="category-icon">🍫</div>
+          <h3>Cacao Trinitario</h3>
+          <p>Una combinación única de características de los cacaos Criollo y Forastero.</p>
+          <span class="category-count" id="count-cacao-trinitario">0 productos</span>
+        </div>
+      </div>
+
+      <div class="category-card" onclick="showSection('combos')" style="border-color: var(--accent);">
+        <img src="https://placehold.co/600x400/f59e0b/ffffff?text=🎁+Combos" alt="Combos">
+        <div class="category-card-content">
+          <div class="category-icon">🎁</div>
+          <h3>Combos Especiales</h3>
+          <p>Packs familiares con descuento. La mejor relación calidad-precio.</p>
+          <span class="category-count" id="count-combos" style="background: var(--accent);">0 productos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cacao-criolloSection" class="section">
+    <div class="category-header">
+      <button class="back-btn" onclick="showSection('home')">
+        ← Volver al Inicio
+      </button>
+      <h2 class="category-title">🍫 Cacao Criollo</h2>
+    </div>
+    <div class="container">
+      <div class="catalog-header">
+        <h2>Cacao Criollo Premium</h2>
+        <p>El cacao más exquisito y aromático</p>
+      </div>
+      <div class="spreadsheet-container">
+        <div class="table-toolbar">
+          <div class="toolbar-group">
+            <strong>📋 Inventario</strong>
+            <span style="color: var(--text-secondary);">|</span>
+            <span id="total-cacao-criollo" style="color: var(--primary);">0 productos</span>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn-add-row" onclick="addRow('cacao-criollo')">+ Agregar Fila</button>
+            <button class="btn-add-column" onclick="addColumn('cacao-criollo')">+ Agregar Columna</button>
+          </div>
+        </div>
+        <table class="spreadsheet-table" id="table-cacao-criollo">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Unidad</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="grid-cacao-criollo"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="cacao-forasteroSection" class="section">
+    <div class="category-header">
+      <button class="back-btn" onclick="showSection('home')">
+        ← Volver al Inicio
+      </button>
+      <h2 class="category-title">🍫 Cacao Forastero</h2>
+    </div>
+    <div class="container">
+      <div class="catalog-header">
+        <h2>Cacao Forastero</h2>
+        <p>El cacao más abundante y versátil</p>
+      </div>
+      <div class="spreadsheet-container">
+        <div class="table-toolbar">
+          <div class="toolbar-group">
+            <strong>📋 Inventario</strong>
+            <span style="color: var(--text-secondary);">|</span>
+            <span id="total-cacao-forastero" style="color: var(--primary);">0 productos</span>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn-add-row" onclick="addRow('cacao-forastero')">+ Agregar Fila</button>
+            <button class="btn-add-column" onclick="addColumn('cacao-forastero')">+ Agregar Columna</button>
+          </div>
+        </div>
+        <table class="spreadsheet-table" id="table-cacao-forastero">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Unidad</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="grid-cacao-forastero"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="cacao-trinitarioSection" class="section">
+    <div class="category-header">
+      <button class="back-btn" onclick="showSection('home')">
+        ← Volver al Inicio
+      </button>
+      <h2 class="category-title">🍫 Cacao Trinitario</h2>
+    </div>
+    <div class="container">
+      <div class="catalog-header">
+        <h2>Cacao Trinitario</h2>
+        <p>Combinación única de Criollo y Forastero</p>
+      </div>
+      <div class="spreadsheet-container">
+        <div class="table-toolbar">
+          <div class="toolbar-group">
+            <strong>📋 Inventario</strong>
+            <span style="color: var(--text-secondary);">|</span>
+            <span id="total-cacao-trinitario" style="color: var(--primary);">0 productos</span>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn-add-row" onclick="addRow('cacao-trinitario')">+ Agregar Fila</button>
+            <button class="btn-add-column" onclick="addColumn('cacao-trinitario')">+ Agregar Columna</button>
+          </div>
+        </div>
+        <table class="spreadsheet-table" id="table-cacao-trinitario">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Unidad</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="grid-cacao-trinitario"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="combosSection" class="section">
+    <div class="category-header">
+      <button class="back-btn" onclick="showSection('home')">
+        ← Volver al Inicio
+      </button>
+      <h2 class="category-title">🎁 Combos Especiales</h2>
+    </div>
+    <div class="container">
+      <div class="catalog-header">
+        <h2>Packs y Ofertas</h2>
+        <p>Ahorra comprando nuestros combos</p>
+      </div>
+      <div class="spreadsheet-container">
+        <div class="table-toolbar">
+          <div class="toolbar-group">
+            <strong>📋 Inventario</strong>
+            <span style="color: var(--text-secondary);">|</span>
+            <span id="total-combos" style="color: var(--primary);">0 productos</span>
+          </div>
+          <div class="toolbar-group">
+            <button class="btn-add-row" onclick="addRow('combos')">+ Agregar Fila</button>
+            <button class="btn-add-column" onclick="addColumn('combos')">+ Agregar Columna</button>
+          </div>
+        </div>
+        <table class="spreadsheet-table" id="table-combos">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Unidad</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="grid-combos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="addProductModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeAddProductModal()">✕</button>
+      <div class="modal-body">
+        <h3>➕ Agregar Nuevo Producto</h3>
+        <form id="addProductForm" onsubmit="handleAddProduct(event)">
+          <div class="form-group">
+            <label class="required">Nombre del Producto:</label>
+            <input type="text" id="addName" class="cell-editable" required placeholder="Ej: Cacao Criollo Premium">
+          </div>
+
+          <div class="form-group">
+            <label class="required">Categoría:</label>
+            <select id="addCategory" class="cell-editable" required>
+              <option value="🍫 Cacao Criollo">🍫 Cacao Criollo</option>
+              <option value="🍫 Cacao Forastero">🍫 Cacao Forastero</option>
+              <option value="🍫 Cacao Trinitario">🍫 Cacao Trinitario</option>
+              <option value="🎁 Combos">🎁 Combos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="required">Precio:</label>
+            <input type="number" id="addPrice" class="cell-editable" step="0.01" required placeholder="Ej: 25.00">
+          </div>
+
+          <div class="form-group">
+            <label class="required">Unidad de Medida:</label>
+            <input type="text" id="addUnit" class="cell-editable" required placeholder="Ej: kg, pieza, caja">
+          </div>
+
+          <div class="form-group">
+            <label>📷 Foto del Producto:</label>
+            <input type="file" id="addImageFile" accept="image/*" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 0.4rem; color: var(--text);">
+          </div>
+
+          <div class="form-group">
+            <label>Descripción:</label>
+            <textarea id="addDesc" class="cell-editable" style="height: 80px; resize: vertical;" placeholder="Detalles del producto..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="required" style="color: var(--accent);">Stock Inicial:</label>
+            <input type="number" id="addStock" class="cell-editable" required value="100" min="0" placeholder="Ej: 10000">
+            <small style="color: var(--text-secondary); font-size: 0.8rem;">Si ingresas 10,000 o más, se generarán pines únicos automáticamente</small>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            🚀 Crear Producto
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© <span id="year"></span> 📦 Gestor de Inventario | Sistema completo de gestión de catálogo</p>
+    <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 1rem;">
+      💡 Gestiona tu inventario, genera pines y administra tu catálogo desde una sola interfaz
+    </p>
+  </footer>
+
+  <script>
+    const products = {
+      1: { name: "Cacao Criollo Premium", category: "🍫 Cacao Criollo", price: 25.00, unit: "kg", desc: "El cacao más exquisito y aromático de las montañas.", img: "https://placehold.co/600x400/78350f/ffffff?text=🍫+Cacao+Criollo", stock: 50, section: "cacao-criollo", pines: [] },
+      2: { name: "Cacao Forastero", category: "🍫 Cacao Forastero", price: 18.00, unit: "kg", desc: "El cacao más abundante y versátil para derivados.", img: "https://placehold.co/600x400/92400e/ffffff?text=🍫+Cacao+Forastero", stock: 75, section: "cacao-forastero", pines: [] },
+      3: { name: "Cacao Trinitario", category: "🍫 Cacao Trinitario", price: 22.00, unit: "kg", desc: "Combinación única de Criollo y Forastero.", img: "https://placehold.co/600x400/451a03/ffffff?text=🍫+Cacao+Trinitario", stock: 60, section: "cacao-trinitario", pines: [] }
+    };
+
+    function generarPinesMixtos(cantidad) {
+      let arrayPines = [];
+      const caracteres = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let bucleCarga = Math.min(cantidad, 10000); 
+      for(let i = 0; i < bucleCarga; i++) {
+        let pin = '';
+        for (let j = 0; j < 8; j++) {
+          pin += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        arrayPines.push(pin);
+      }
+      return arrayPines;
+    }
+
+    function addRow(sectionName) {
+      // Crear un nuevo producto vacío
+      const nuevoId = Object.keys(products).length + 1;
+      
+      let category = '';
+      if (sectionName === 'cacao-criollo') category = '🍫 Cacao Criollo';
+      else if (sectionName === 'cacao-forastero') category = '🍫 Cacao Forastero';
+      else if (sectionName === 'cacao-trinitario') category = '🍫 Cacao Trinitario';
+      else if (sectionName === 'combos') category = '🎁 Combos';
+
+      products[nuevoId] = {
+        name: "Nuevo Producto",
+        category: category,
+        price: 0.00,
+        unit: "kg",
+        desc: "",
+        img: "https://placehold.co/600x400/334155/ffffff?text=Sin+Imagen",
+        stock: 0,
+        section: sectionName,
+        pines: []
+      };
+
+      alert(`✅ Nueva fila agregada. ID: ${nuevoId}\nEdita los campos directamente en la tabla y guarda los cambios.`);
+      renderAllCatalogs();
+      
+      // Scroll a la nueva fila
+      setTimeout(() => {
+        const grid = document.getElementById(`grid-${sectionName}`);
+        if (grid && grid.lastElementChild) {
+          grid.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          grid.lastElementChild.style.background = 'rgba(245, 158, 11, 0.3)';
+          setTimeout(() => {
+            grid.lastElementChild.style.background = '';
+          }, 2000);
+        }
+      }, 100);
+    }
+
+    function addColumn(sectionName) {
+      const columnName = prompt("Nombre de la nueva columna:");
+      if (columnName) {
+        const table = document.getElementById(`table-${sectionName}`);
+        const headerRow = table.querySelector('thead tr');
+        const th = document.createElement('th');
+        th.textContent = columnName;
+        th.contentEditable = true;
+        th.style.background = 'var(--accent)';
+        th.style.color = '#000';
+        headerRow.appendChild(th);
+        
+        // Add empty cells to existing rows
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const td = document.createElement('td');
+          td.innerHTML = '<input type="text" class="cell-editable" placeholder="-">';
+          row.appendChild(td);
+        });
+      }
+    }
+
+    function guardarCambiosProducto(id) {
+      const nuevoPrecio = parseFloat(document.getElementById(`input-precio-${id}`).value);
+      const stockAnadir = parseInt(document.getElementById(`input-stock-${id}`).value) || 0;
+      const fileInput = document.getElementById(`input-file-${id}`);
+
+      if (!isNaN(nuevoPrecio)) products[id].price = nuevoPrecio;
+      
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          products[id].img = e.target.result;
+          procesarStockYRender(id, stockAnadir);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        procesarStockYRender(id, stockAnadir);
+      }
+    }
+
+    function procesarStockYRender(id, stockAnadir) {
+      if (stockAnadir > 0) {
+        products[id].stock += stockAnadir;
+        if (stockAnadir >= 10000) {
+          products[id].pines = products[id].pines.concat(generarPinesMixtos(stockAnadir));
+          alert(`⚡ ¡Impresionante! Se añadieron ${stockAnadir} unidades a ${products[id].name} y se generaron sus ${stockAnadir} pines únicos.`);
+        } else {
+          alert(`✅ Inventario actualizado para ${products[id].name}. +${stockAnadir} unidades.`);
+        }
+      } else {
+        alert(`✅ Datos de ${products[id].name} actualizados correctamente.`);
+      }
+      renderAllCatalogs();
+    }
+
+    function eliminarProducto(id) {
+      const nombreProd = products[id].name;
+      if (confirm(`⚠️ ¿Estás seguro de que deseas eliminar "${nombreProd}" del catálogo?\nEsta acción no se puede deshacer.`)) {
+        delete products[id];
+        alert(`🗑️ "${nombreProd}" ha sido eliminado exitosamente.`);
+        renderAllCatalogs();
+      }
+    }
+
+    function openAddProductModal() {
+      document.getElementById('addProductModal').classList.add('open');
+    }
+    
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').classList.remove('open');
+    }
+    
+    function handleAddProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('addName').value;
+      const category = document.getElementById('addCategory').value;
+      const price = parseFloat(document.getElementById('addPrice').value);
+      const unit = document.getElementById('addUnit').value;
+      const desc = document.getElementById('addDesc').value;
+      const stock = parseInt(document.getElementById('addStock').value);
+      const fileInput = document.getElementById('addImageFile');
+
+      const nuevoId = Object.keys(products).length + 1;
+      
+      let section = '';
+      if (category.includes('Criollo')) section = 'cacao-criollo';
+      else if (category.includes('Forastero')) section = 'cacao-forastero';
+      else if (category.includes('Trinitario')) section = 'cacao-trinitario';
+      else if (category.includes('Combos')) section = 'combos';
+
+      const crearProducto = (imagenFinal) => {
+        products[nuevoId] = {
+          name: name,
+          category: category,
+          price: price,
+          unit: unit,
+          desc: desc,
+          img: imagenFinal,
+          stock: stock,
+          section: section,
+          pines: stock >= 10000 ? generarPinesMixtos(stock) : []
+        };
+
+        if (stock >= 10000) {
+          alert(`✅ ¡Producto creado exitosamente!\n"${name}" con ${stock} unidades.\nSe generaron ${stock} pines únicos.`);
+        } else {
+          alert(`✅ ¡Producto creado exitosamente!\n"${name}" con ${stock} unidades en stock.`);
+        }
+        
+        document.getElementById('addProductForm').reset();
+        closeAddProductModal();
+        renderAllCatalogs();
+      };
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          crearProducto(event.target.result);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        const icon = category.split(' ')[0];
+        const imgDefecto = `https://placehold.co/400x300/334155/ffffff?text=${icon}+${encodeURIComponent(name)}`;
+        crearProducto(imgDefecto);
+      }
+    }
+
+    function renderCatalogBySection(sectionName, gridId) {
+      const grid = document.getElementById(gridId);
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      let count = 0;
+
+      Object.keys(products).forEach(id => {
+        const p = products[id];
+        if (p.section !== sectionName) return;
+        count++;
+
+        const esAgotado = p.stock <= 0;
+        const badgeClass = p.stock > 5000 ? 'badge-masiva' : p.stock > 0 ? 'badge-fresco' : 'badge-agotado';
+        const badgeText = p.stock > 5000 ? 'Inyección Masiva' : p.stock > 0 ? 'Fresco' : 'Sin Stock';
+        const stockClass = p.stock > 0 ? 'stock-ok' : 'stock-low';
+        const stockText = p.stock > 0 ? `✅ ${p.stock} und.` : '❌ Agotado';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><img src="${p.img}" alt="${p.name}" class="product-img-small" onclick="alert('Producto: ${p.name}')"></td>
+          <td><input type="text" class="cell-editable" value="${p.name}" style="min-width: 150px;"></td>
+          <td>${p.category}</td>
+          <td><input type="number" id="input-precio-${id}" class="cell-editable" value="${p.price.toFixed(2)}" step="0.01" style="width: 80px;"></td>
+          <td>${p.unit}</td>
+          <td><input type="number" id="input-stock-${id}" class="cell-editable" value="${p.stock}" min="0" style="width: 80px;"></td>
+          <td><span class="badge-small ${badgeClass}">${badgeText}</span><br><span class="${stockClass}">${stockText}</span></td>
+          <td>
+            <button class="btn-action-small btn-save-small" onclick="guardarCambiosProducto(${id})">💾 Guardar</button>
+            <button class="btn-action-small btn-delete-small" onclick="eliminarProducto(${id})">🗑️</button>
+          </td>
+        `;
+        grid.appendChild(row);
+      });
+
+      const countLabel = document.getElementById(`count-${sectionName}`);
+      const totalLabel = document.getElementById(`total-${sectionName}`);
+      if (countLabel) countLabel.textContent = `${count} producto${count !== 1 ? 's' : ''}`;
+      if (totalLabel) totalLabel.textContent = `${count} producto${count !== 1 ? 's' : ''}`;
+    }
+
+    function renderAllCatalogs() {
+      renderCatalogBySection('cacao-criollo', 'grid-cacao-criollo');
+      renderCatalogBySection('cacao-forastero', 'grid-cacao-forastero');
+      renderCatalogBySection('cacao-trinitario', 'grid-cacao-trinitario');
+      renderCatalogBySection('combos', 'grid-combos');
+    }
+
+    function showSection(sectionName) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      const targetSection = document.getElementById(sectionName + 'Section');
+      if (targetSection) {
+        targetSection.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    document.getElementById('addProductModal').addEventListener('click', (e) => {
+      if (e.target.id === 'addProductModal') closeAddProductModal();
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAllCatalogs();
+
+      const cards = document.querySelectorAll('.category-card');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'all 0.5s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+  </script>
+</body>
+</html>
